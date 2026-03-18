@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { pool } from './db/pool.js';
 
 dotenv.config();
 
@@ -14,8 +15,13 @@ app.use(express.json());
 // import userRoutes from './routes/users';
 // app.use('/api/users', userRoutes);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');           
+    res.json({ status: 'ok', db: 'conectado' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', db: 'sin conexión', error });
+  }
 });
 
 app.listen(PORT, () => {
