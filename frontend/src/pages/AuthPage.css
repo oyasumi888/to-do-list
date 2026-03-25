@@ -48,15 +48,17 @@
   letter-spacing: 4px;
   color: #E85D00;
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .auth-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 56px; /* Reducido un poco (antes 64px) */
-  line-height: 0.9;
+  font-size: 50px; /* Puedes ajustarlo a 48px o 50px si lo ves muy ancho */
+  line-height: 1; /* Al ser una sola línea, un line-height de 1 es perfecto */
   color: #1A1A1A;
-  margin-bottom: 4px;
+  margin-bottom: 8px; /* Le damos un respiro antes de la barra de subtítulo */
   letter-spacing: 2px;
+  text-align: center; /* Aseguramos que quede bien centradito */
 }
 
 .auth-subtitle-bar {
@@ -97,7 +99,7 @@
   display: block;
   font-size: 10px;
   letter-spacing: 3px;
-  color: #666;
+  color: #A8A8A8;
   margin-bottom: 6px;
   text-transform: uppercase;
 }
@@ -145,6 +147,7 @@
 .auth-divider {
   display: flex;
   align-items: center;
+  color: #888888;
   gap: 12px;
   margin: 16px 0; /* Reducido (antes 24px 0 20px) */
 }
@@ -154,7 +157,7 @@
 .auth-divider-text {
   font-size: 9px;
   letter-spacing: 3px;
-  color: #444;
+  color: #888888;
 }
 
 .auth-register-link {
@@ -180,7 +183,7 @@
 .auth-back-btn {
   background: none;
   border: none;
-  color: #555;
+  color: #888888;
   font-family: 'Space Mono', monospace;
   font-size: 10px;
   letter-spacing: 2px;
@@ -195,7 +198,7 @@
 .auth-footer {
   font-size: 9px;
   letter-spacing: 3px;
-  color: #444;
+  color: #888888;
   margin-top: 20px;
   display: flex;
   justify-content: space-between;
@@ -225,16 +228,17 @@
   right: 12px;
   background: none;
   border: none;
-  color: #666;
-  font-family: 'Space Mono', monospace;
-  font-size: 14px;
+  color: #888888; /* El mismo tono gris claro que pusimos antes */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 0;
-  user-select: none; /* Evita que se seleccione como texto al clickear rápido */
+  padding: 4px; /* Un poco de padding hace más fácil darle clic */
+  user-select: none;
   transition: color 0.2s;
 }
 
 .auth-show-pass-btn:hover {
-  color: #E85D00;
+  color: #E85D00; /* Se ilumina en naranja al pasar el mouse */
 }
 
