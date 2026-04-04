@@ -1,33 +1,34 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { pool } from './db/pool.js';
 import { AuthService } from './services/auth.service.js';
+import tasksRouter from './routes/tasks.route.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadsRoot = path.join(__dirname, '../uploads');
+
 app.use(cors());
 app.use(express.json());
-
-// Rutas
-// import userRoutes from './routes/users';
-// app.use('/api/users', userRoutes);
+app.use('/uploads', express.static(uploadsRoot));
 
 app.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1');           
+    await pool.query('SELECT 1');
     res.json({ status: 'ok', db: 'conectado' });
   } catch (error) {
     res.status(500).json({ status: 'error', db: 'sin conexión', error });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+app.use('/api/tasks', tasksRouter);
 
 app.post('/auth/register', async (req, res) => {
   try {
@@ -39,7 +40,6 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-// Login temporal para pruebas
 app.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -48,4 +48,8 @@ app.post('/auth/login', async (req, res) => {
   } catch (error) {
     res.status(401).json({ error: String(error) });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -36,7 +36,11 @@ const EyeOffIcon = () => (
     </svg>
 );
 
-export function AuthPage() {
+interface AuthPageProps {
+  onLoginSuccess?: () => void;
+}
+
+export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [screen, setScreen] = useState<'login' | 'register'>('login');
   
   // Estados para mostrar/ocultar contraseñas
@@ -75,7 +79,16 @@ export function AuthPage() {
         return;
       }
 
+      const loginData = (await res.json()) as { token?: string; usuario?: unknown };
+      if (loginData.token) {
+        localStorage.setItem('token', loginData.token);
+      }
+      if (loginData.usuario !== undefined) {
+        localStorage.setItem('usuario', JSON.stringify(loginData.usuario));
+      }
+
       showToast('success', 'ACCESO CONCEDIDO', 'Bienvenido al sistema.');
+      window.setTimeout(() => onLoginSuccess?.(), 450);
     } catch (error) {
       removeToast(loadingId);
       showToast('error', 'ERROR', 'Ocurrió un problema inesperado.');
@@ -243,7 +256,7 @@ export function AuthPage() {
                         onTouchStart={() => setShowRegPass(true)}
                         onTouchEnd={() => setShowRegPass(false)}
                       >
-                        {showLoginPass ? <EyeIcon /> : <EyeOffIcon />}
+                        {showRegPass ? <EyeIcon /> : <EyeOffIcon />}
                       </button>
                     </div>
                     {registerForm.formState.errors.password && (

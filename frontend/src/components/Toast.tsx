@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import type { Toast as ToastType } from '../hooks/useToast.js';
 import './Toast.css';
 

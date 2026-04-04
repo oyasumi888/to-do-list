@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+.tasks-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #1a1a1a;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  font-family: 'Space Mono', monospace;
+  padding: 24px 16px 48px;
+  box-sizing: border-box;
+}
+
+.tasks-header {
+  max-width: 720px;
+  margin: 0 auto 28px;
+}
+
+.tasks-header-tag {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #e85d00;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.tasks-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: #e8e4d9;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.tasks-header-bar {
+  background: #111;
+  color: #e85d00;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 6px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #2a2a2a;
+}
+
+.tasks-logout {
+  background: transparent;
+  border: 1px solid #333;
+  color: #e8e4d9;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.tasks-logout:hover {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
+.tasks-main {
+  max-width: 720px;
+  margin: 0 auto;
+}

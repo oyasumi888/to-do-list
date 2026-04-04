@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+.task-item {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 720px) {
+  .task-item {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.task-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.task-item-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #e8e4d9;
+  margin: 0;
+  font-weight: 400;
+}
+
+.task-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  border: 1px solid #333;
+  text-transform: uppercase;
+}
+
+.task-badge--pendiente {
+  color: #e8e4d9;
+  border-color: #555;
+}
+
+.task-badge--en_progreso {
+  color: #e85d00;
+  border-color: #e85d00;
+}
+
+.task-badge--completada {
+  color: #7cb87c;
+  border-color: #7cb87c;
+}
+
+.task-item-desc {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: #a8a8a8;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.task-item-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #888;
+  margin: 0 0 6px;
+}
+
+.task-item-meta-label {
+  color: #e85d00;
+  letter-spacing: 1px;
+  margin-right: 6px;
+}
+
+.task-item-archivos {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-item-archivo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-archivo-remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #5a2a2a;
+  color: #e87070;
+  font-size: 18px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-archivo-remove:hover {
+  border-color: #e83030;
+  color: #e83030;
+}
+
+.task-item-link {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: #e85d00;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.task-item-link:hover {
+  color: #ff6a00;
+}
+
+.task-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.task-item-status-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.task-status-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 8px 10px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  color: #a8a8a8;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-status-btn:hover {
+  border-color: #e85d00;
+  color: #e8e4d9;
+}
+
+.task-status-btn.active {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
+.task-item-row-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.task-attach-btn,
+.task-delete-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: 1px solid #333;
+  background: transparent;
+  color: #e8e4d9;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-attach-btn:hover {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
+.task-delete-btn {
+  border-color: #5a2a2a;
+  color: #e87070;
+}
+
+.task-delete-btn:hover {
+  border-color: #e83030;
+  color: #e83030;
+}

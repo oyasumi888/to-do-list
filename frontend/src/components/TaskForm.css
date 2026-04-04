@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+.task-form-section {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.task-form-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 4px;
+  color: #e8e4d9;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  font-weight: 400;
+}
+
+.task-form-heading-accent {
+  color: #e85d00;
+}
+
+.task-form-field {
+  margin-bottom: 16px;
+}
+
+.task-form-label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #a8a8a8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.task-form-input,
+.task-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  color: #e8e4d9;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.task-form-input:focus,
+.task-form-textarea:focus {
+  border-color: #e85d00;
+}
+
+.task-form-input.error {
+  border-color: #e83030;
+}
+
+.task-form-textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.task-form-error {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: #e83030;
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.task-form-submit {
+  width: 100%;
+  box-sizing: border-box;
+  background: #e85d00;
+  color: #1a1a1a;
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  padding: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+
+.task-form-submit:hover {
+  background: #ff6a00;
+}

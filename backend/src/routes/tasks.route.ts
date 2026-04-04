@@ -1,0 +1,215 @@
+import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import { randomUUID } from 'crypto';
+import { fileURLToPath } from 'url';
+import { unlink } from 'fs/promises';
+
+import { authMiddleware } from '../middleware/auth.middleware.js';
+import { TaskService, isValidEstado } from '../services/task.service.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadsDir = path.join(__dirname, '../../uploads');
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    cb(null, `${randomUUID()}${ext}`);
+  },
+});
+
+const upload = multer({ storage });
+
+function routeParamId(req: { params: Record<string, string | string[] | undefined> }): string | undefined {
+  const v = req.params['id'];
+  if (v === undefined) return undefined;
+  return Array.isArray(v) ? v[0] : v;
+}
+
+function routeParamArchivoId(req: { params: Record<string, string | string[] | undefined> }): string | undefined {
+  const v = req.params['archivoId'];
+  if (v === undefined) return undefined;
+  return Array.isArray(v) ? v[0] : v;
+}
+
+const router = Router();
+
+router.use(authMiddleware);
+
+router.get('/', async (req, res) => {
+  try {
+    const usuario_id = req.user!.id;
+    const tasks = await TaskService.getTasksByUser(usuario_id);
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { titulo, descripcion, fecha_limite, estado } = req.body as Record<
+      string,
+      string | undefined
+    >;
+    if (typeof titulo !== 'string' || titulo.trim() === '') {
+      res.status(400).json({ error: 'titulo es requerido' });
+      return;
+    }
+    if (estado !== undefined && estado !== null && !isValidEstado(estado)) {
+      res.status(400).json({ error: 'estado inválido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    const task = await TaskService.createTask(
+      usuario_id,
+      titulo.trim(),
+      typeof descripcion === 'string' ? descripcion : undefined,
+      typeof fecha_limite === 'string' && fecha_limite !== '' ? fecha_limite : undefined,
+      estado !== undefined && estado !== null && isValidEstado(estado) ? estado : undefined
+    );
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const { estado } = req.body as { estado?: string };
+    if (typeof estado !== 'string' || !isValidEstado(estado)) {
+      res.status(400).json({ error: 'estado inválido o faltante' });
+      return;
+    }
+    const id = routeParamId(req);
+    if (!id) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    let task;
+    try {
+      task = await TaskService.updateTaskStatus(id, usuario_id, estado);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Estado inválido') {
+        res.status(400).json({ error: 'estado inválido' });
+        return;
+      }
+      throw e;
+    }
+    if (!task) {
+      res.status(404).json({ error: 'Tarea no encontrada' });
+      return;
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.delete('/:id/archivos/:archivoId', async (req, res) => {
+  try {
+    const tareaId = routeParamId(req);
+    const archivoId = routeParamArchivoId(req);
+    if (!tareaId || !archivoId) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    const removed = await TaskService.deleteTareaArchivo(archivoId, tareaId, usuario_id);
+    if (!removed) {
+      res.status(404).json({ error: 'Archivo no encontrado' });
+      return;
+    }
+    const base = TaskService.storageBasenameFromPublicUrl(removed.url);
+    if (base) {
+      const filePath = path.join(uploadsDir, base);
+      await unlink(filePath).catch(() => undefined);
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = routeParamId(req);
+    if (!id) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    const deleted = await TaskService.deleteTask(id, usuario_id);
+    if (!deleted) {
+      res.status(404).json({ error: 'Tarea no encontrada' });
+      return;
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.post(
+  '/:id/upload',
+  async (req, res, next) => {
+    try {
+      const taskId = routeParamId(req);
+      if (!taskId) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const usuario_id = req.user!.id;
+      const belongs = await TaskService.taskBelongsToUser(taskId, usuario_id);
+      if (!belongs) {
+        res.status(404).json({ error: 'Tarea no encontrada' });
+        return;
+      }
+      next();
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  },
+  upload.single('archivo'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: 'Archivo requerido' });
+        return;
+      }
+      const taskId = routeParamId(req);
+      if (!taskId) {
+        await unlink(req.file.path);
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const usuario_id = req.user!.id;
+
+      const base =
+        process.env.PUBLIC_API_URL?.replace(/\/$/, '') ||
+        `${req.protocol}://${req.get('host')}`;
+      const publicUrl = `${base}/uploads/${req.file.filename}`;
+      const nombreOriginal = req.file.originalname.slice(0, 255);
+
+      const inserted = await TaskService.insertTareaArchivo(taskId, publicUrl, nombreOriginal);
+      if (!inserted) {
+        await unlink(req.file.path);
+        res.status(500).json({ error: 'No se pudo guardar el archivo' });
+        return;
+      }
+      const task = await TaskService.getTaskWithArchivos(taskId, usuario_id);
+      res.status(201).json(task);
+    } catch (error) {
+      if (req.file?.path) {
+        await unlink(req.file.path).catch(() => undefined);
+      }
+      res.status(500).json({ error: String(error) });
+    }
+  }
+);
+
+export default router;
