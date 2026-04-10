@@ -1,13 +1,16 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createTask } from '../services/api.js';
+import { createTask, getCategories } from '../services/api.js';
+import type { Category } from '../services/api.js';
 import './TaskForm.css';
 
 const taskFormSchema = z.object({
   titulo: z.string().min(1, 'Título requerido'),
   descripcion: z.string().optional(),
   fecha_limite: z.string().optional(),
+  categoria_id: z.string().optional(),
 });
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -16,15 +19,29 @@ interface TaskFormProps {
   showToast: (type: 'success' | 'error' | 'loading', title: string, message: string) => string;
   removeToast: (id: string) => void;
   onCreated: () => void;
+  categoriesRefreshNonce: number;
 }
 
-export function TaskForm({ showToast, removeToast, onCreated }: TaskFormProps) {
+export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshNonce }: TaskFormProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCategories().then((list) => {
+      if (!cancelled) setCategories(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [categoriesRefreshNonce]);
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
       titulo: '',
       descripcion: '',
       fecha_limite: '',
+      categoria_id: '',
     },
   });
 
@@ -35,10 +52,11 @@ export function TaskForm({ showToast, removeToast, onCreated }: TaskFormProps) {
         titulo: data.titulo.trim(),
         descripcion: data.descripcion?.trim() || undefined,
         fecha_limite: data.fecha_limite?.trim() || undefined,
+        categoria_id: data.categoria_id?.trim() || undefined,
       });
       removeToast(loadingId);
       showToast('success', 'TAREA CREADA', 'La tarea se guardó correctamente.');
-      form.reset({ titulo: '', descripcion: '', fecha_limite: '' });
+      form.reset({ titulo: '', descripcion: '', fecha_limite: '', categoria_id: '' });
       onCreated();
     } catch (e) {
       removeToast(loadingId);
@@ -90,6 +108,24 @@ export function TaskForm({ showToast, removeToast, onCreated }: TaskFormProps) {
             className="task-form-input"
             {...form.register('fecha_limite')}
           />
+        </div>
+
+        <div className="task-form-field">
+          <label className="task-form-label" htmlFor="task-categoria">
+            Categoría de la tarea
+          </label>
+          <select
+            id="task-categoria"
+            className="task-form-input task-form-select"
+            {...form.register('categoria_id')}
+          >
+            <option value="">Sin categoría</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button type="submit" className="task-form-submit">

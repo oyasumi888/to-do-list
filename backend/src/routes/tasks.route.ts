@@ -54,7 +54,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { titulo, descripcion, fecha_limite, estado } = req.body as Record<
+    const { titulo, descripcion, fecha_limite, estado, categoria_id } = req.body as Record<
       string,
       string | undefined
     >;
@@ -66,14 +66,33 @@ router.post('/', async (req, res) => {
       res.status(400).json({ error: 'estado inválido' });
       return;
     }
+    if (
+      categoria_id !== undefined &&
+      categoria_id !== null &&
+      categoria_id !== '' &&
+      !UUID_REGEX.test(categoria_id)
+    ) {
+      res.status(400).json({ error: 'categoria_id no es un UUID válido' });
+      return;
+    }
     const usuario_id = req.user!.id;
-    const task = await TaskService.createTask(
-      usuario_id,
-      titulo.trim(),
-      typeof descripcion === 'string' ? descripcion : undefined,
-      typeof fecha_limite === 'string' && fecha_limite !== '' ? fecha_limite : undefined,
-      estado !== undefined && estado !== null && isValidEstado(estado) ? estado : undefined
-    );
+    let task;
+    try {
+      task = await TaskService.createTask(
+        usuario_id,
+        titulo.trim(),
+        typeof descripcion === 'string' ? descripcion : undefined,
+        typeof fecha_limite === 'string' && fecha_limite !== '' ? fecha_limite : undefined,
+        estado !== undefined && estado !== null && isValidEstado(estado) ? estado : undefined,
+        typeof categoria_id === 'string' && categoria_id !== '' ? categoria_id : undefined
+      );
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Categoría no válida') {
+        res.status(400).json({ error: e.message });
+        return;
+      }
+      throw e;
+    }
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ error: String(error) });

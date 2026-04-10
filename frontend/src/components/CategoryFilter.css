@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+.category-filter-section {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  padding: 20px 22px;
+  margin-bottom: 24px;
+}
+
+.category-filter-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: #e8e4d9;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a2a2a;
+  font-weight: 400;
+}
+
+.category-filter-heading-accent {
+  color: #e85d00;
+}
+
+.category-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.category-filter-chip {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 12px 8px 10px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-left: 3px solid var(--category-accent, #e85d00);
+  color: #e8e4d9;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.category-filter-chip:hover {
+  border-color: #555;
+  box-shadow: 0 0 0 1px rgba(232, 93, 0, 0.25);
+}
+
+.category-filter-chip--all {
+  border-left-color: #e85d00;
+}
+
+.category-filter-chip--active {
+  border-color: #e85d00;
+  color: #e85d00;
+  box-shadow: 0 0 0 1px rgba(232, 93, 0, 0.35);
+}
+
+.category-filter-chip--all.category-filter-chip--active {
+  border-left-color: #e85d00;
+}
+
+.category-filter-loading,
+.category-filter-error {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #888;
+}
+
+.category-filter-error {
+  color: #e87070;
+}

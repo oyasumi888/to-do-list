@@ -51,8 +51,14 @@
 }
 
 .task-form-input:focus,
-.task-form-textarea:focus {
+.task-form-textarea:focus,
+.task-form-select:focus {
   border-color: #e85d00;
+}
+
+.task-form-select {
+  cursor: pointer;
+  appearance: auto;
 }
 
 .task-form-input.error {

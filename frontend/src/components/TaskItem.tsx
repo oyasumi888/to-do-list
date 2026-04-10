@@ -22,9 +22,14 @@ function normalizeArchivos(task: Task) {
   return Array.isArray(task.archivos) ? task.archivos : [];
 }
 
+function normalizeCategorias(task: Task) {
+  return Array.isArray(task.categorias) ? task.categorias : [];
+}
+
 export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const archivos = normalizeArchivos(task);
+  const categorias = normalizeCategorias(task);
 
   const handleStatus = async (estado: TaskEstado) => {
     if (estado === task.estado) return;
@@ -98,6 +103,20 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
             {estadoLabels[task.estado]}
           </span>
         </div>
+        {categorias.length > 0 && (
+          <ul className="task-item-categorias">
+            {categorias.map((cat) => (
+              <li key={cat.id} className="task-item-categoria-li">
+                <span
+                  className="task-item-categoria-pill"
+                  style={{ ['--category-accent' as string]: cat.color_hex }}
+                >
+                  {cat.nombre}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
         {task.descripcion && <p className="task-item-desc">{task.descripcion}</p>}
         {task.fecha_limite && (
           <p className="task-item-meta">

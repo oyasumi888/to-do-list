@@ -14,28 +14,43 @@ export function isValidEstado(value: string): value is TaskEstado {
   return VALID_ESTADOS.has(value as TaskEstado);
 }
 
-const TASK_SELECT_WITH_ARCHIVOS = `
+const TASK_SELECT_WITH_RELATIONS = `
   SELECT t.*,
-    COALESCE(
-      json_agg(
-        json_build_object(
-          'id', ta.id,
-          'url', ta.url,
-          'nombre_original', ta.nombre_original,
-          'creado_en', ta.creado_en
-        ) ORDER BY ta.creado_en ASC
-      ) FILTER (WHERE ta.id IS NOT NULL),
-      '[]'
-    ) AS archivos
+    COALESCE(arch.archivos, '[]'::json) AS archivos,
+    COALESCE(cat.categorias, '[]'::json) AS categorias
   FROM tareas t
-  LEFT JOIN tarea_archivos ta ON ta.tarea_id = t.id
+  LEFT JOIN LATERAL (
+    SELECT json_agg(
+      json_build_object(
+        'id', ta.id,
+        'url', ta.url,
+        'nombre_original', ta.nombre_original,
+        'creado_en', ta.creado_en
+      ) ORDER BY ta.creado_en ASC
+    ) AS archivos
+    FROM tarea_archivos ta
+    WHERE ta.tarea_id = t.id
+  ) arch ON true
+  LEFT JOIN LATERAL (
+    SELECT json_agg(
+      json_build_object(
+        'id', c.id,
+        'nombre', c.nombre,
+        'color_hex', c.color_hex
+      ) ORDER BY c.nombre ASC
+    ) AS categorias
+    FROM tarea_categoria tc
+    JOIN categorias c ON c.id = tc.categoria_id
+    WHERE tc.tarea_id = t.id
+  ) cat ON true
 `;
 
 function mapTaskRow(row: Record<string, unknown>): Record<string, unknown> {
-  const { archivos, ...rest } = row;
+  const { archivos, categorias, ...rest } = row;
   return {
     ...rest,
     archivos: Array.isArray(archivos) ? archivos : [],
+    categorias: Array.isArray(categorias) ? categorias : [],
   };
 }
 
@@ -45,23 +60,47 @@ export const TaskService = {
     titulo: string,
     descripcion?: string,
     fecha_limite?: string | null,
-    estado?: TaskEstado
+    estado?: TaskEstado,
+    categoria_id?: string
   ) {
+    if (categoria_id !== undefined && categoria_id !== '') {
+      const { rows: catRows } = await pool.query(
+        `SELECT 1 FROM categorias WHERE id = $1 AND usuario_id = $2`,
+        [categoria_id, usuario_id]
+      );
+      if (catRows.length === 0) {
+        throw new Error('Categoría no válida');
+      }
+    }
+
     const estadoFinal = estado ?? 'pendiente';
     const { rows } = await pool.query(
       `INSERT INTO tareas (usuario_id, titulo, descripcion, fecha_limite, estado)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
+       RETURNING id`,
       [usuario_id, titulo, descripcion ?? null, fecha_limite ?? null, estadoFinal]
     );
-    return { ...rows[0], archivos: [] } as Record<string, unknown>;
+    const taskId = String(rows[0]['id']);
+
+    if (categoria_id !== undefined && categoria_id !== '') {
+      await pool.query(
+        `INSERT INTO tarea_categoria (tarea_id, categoria_id) VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [taskId, categoria_id]
+      );
+    }
+
+    const full = await TaskService.getTaskWithArchivos(taskId, usuario_id);
+    if (!full) {
+      throw new Error('No se pudo cargar la tarea creada');
+    }
+    return full;
   },
 
   async getTasksByUser(usuario_id: string) {
     const { rows } = await pool.query(
-      `${TASK_SELECT_WITH_ARCHIVOS}
+      `${TASK_SELECT_WITH_RELATIONS}
        WHERE t.usuario_id = $1
-       GROUP BY t.id
        ORDER BY t.creado_en DESC`,
       [usuario_id]
     );
@@ -70,9 +109,8 @@ export const TaskService = {
 
   async getTaskWithArchivos(id: string, usuario_id: string) {
     const { rows } = await pool.query(
-      `${TASK_SELECT_WITH_ARCHIVOS}
-       WHERE t.id = $1 AND t.usuario_id = $2
-       GROUP BY t.id`,
+      `${TASK_SELECT_WITH_RELATIONS}
+       WHERE t.id = $1 AND t.usuario_id = $2`,
       [id, usuario_id]
     );
     const row = rows[0] as Record<string, unknown> | undefined;

@@ -30,6 +30,31 @@
   margin-bottom: 10px;
 }
 
+.task-item-categorias {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.task-item-categoria-li {
+  margin: 0;
+}
+
+.task-item-categoria-pill {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  display: inline-block;
+  border: 1px solid #333;
+  border-left: 2px solid var(--category-accent, #888);
+  color: #a8a8a8;
+}
+
 .task-item-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 20px;

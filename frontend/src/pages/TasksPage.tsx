@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useToast } from '../hooks/useToast.js';
 import { ToastContainer } from '../components/Toast.js';
 import { TaskForm } from '../components/TaskForm.js';
+import { CategoryForm } from '../components/CategoryForm.js';
+import { CategoryFilter } from '../components/CategoryFilter.js';
 import { TaskList } from '../components/TaskList.js';
 import './TasksPage.css';
 
@@ -12,6 +14,8 @@ interface TasksPageProps {
 export function TasksPage({ onLogout }: TasksPageProps) {
   const { toasts, showToast, removeToast } = useToast();
   const [listNonce, setListNonce] = useState(0);
+  const [categoriesNonce, setCategoriesNonce] = useState(0);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   return (
     <>
@@ -32,9 +36,21 @@ export function TasksPage({ onLogout }: TasksPageProps) {
             showToast={showToast}
             removeToast={removeToast}
             onCreated={() => setListNonce((n) => n + 1)}
+            categoriesRefreshNonce={categoriesNonce}
+          />
+          <CategoryForm
+            showToast={showToast}
+            removeToast={removeToast}
+            onCategoryCreated={() => setCategoriesNonce((n) => n + 1)}
+          />
+          <CategoryFilter
+            selectedCategoryIds={selectedCategoryIds}
+            onChangeSelected={setSelectedCategoryIds}
+            categoriesRefreshNonce={categoriesNonce}
           />
           <TaskList
             refreshNonce={listNonce}
+            selectedCategoryIds={selectedCategoryIds}
             showToast={showToast}
             removeToast={removeToast}
           />

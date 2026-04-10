@@ -10,6 +10,13 @@ export interface TareaArchivo {
   creado_en: string;
 }
 
+export interface Category {
+  id: string;
+  nombre: string;
+  color_hex: string;
+  usuario_id?: string;
+}
+
 export interface Task {
   id: string;
   usuario_id: string;
@@ -19,12 +26,15 @@ export interface Task {
   estado: TaskEstado;
   creado_en: string;
   archivos: TareaArchivo[];
+  categorias: Category[];
 }
 
 export interface CreateTaskBody {
   titulo: string;
   descripcion?: string;
   fecha_limite?: string;
+  /** Categoría de la tarea (vincula en tarea_categoria); debe pertenecer al usuario */
+  categoria_id?: string;
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -73,7 +83,36 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export async function getTasks(): Promise<Task[]> {
-  return apiFetch<Task[]>('/api/tasks');
+  const list = await apiFetch<Task[]>('/api/tasks');
+  return list.map(normalizeTask);
+}
+
+function normalizeTask(task: Task): Task {
+  return {
+    ...task,
+    archivos: Array.isArray(task.archivos) ? task.archivos : [],
+    categorias: Array.isArray(task.categorias) ? task.categorias : [],
+  };
+}
+
+export async function getCategories(): Promise<Category[]> {
+  return apiFetch<Category[]>('/api/categories');
+}
+
+export interface CreateCategoryBody {
+  nombre: string;
+  color_hex?: string;
+}
+
+export async function createCategory(body: CreateCategoryBody): Promise<Category> {
+  const payload: Record<string, string> = { nombre: body.nombre };
+  if (body.color_hex !== undefined && body.color_hex !== '') {
+    payload.color_hex = body.color_hex;
+  }
+  return apiFetch<Category>('/api/categories', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function createTask(body: CreateTaskBody): Promise<Task> {
@@ -84,17 +123,22 @@ export async function createTask(body: CreateTaskBody): Promise<Task> {
   if (body.fecha_limite !== undefined && body.fecha_limite !== '') {
     payload.fecha_limite = body.fecha_limite;
   }
-  return apiFetch<Task>('/api/tasks', {
+  if (body.categoria_id !== undefined && body.categoria_id !== '') {
+    payload.categoria_id = body.categoria_id;
+  }
+  const task = await apiFetch<Task>('/api/tasks', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+  return normalizeTask(task);
 }
 
 export async function updateTaskStatus(id: string, estado: TaskEstado): Promise<Task> {
-  return apiFetch<Task>(`/api/tasks/${id}`, {
+  const task = await apiFetch<Task>(`/api/tasks/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ estado }),
   });
+  return normalizeTask(task);
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -106,10 +150,11 @@ export async function deleteTask(id: string): Promise<void> {
 export async function uploadFile(taskId: string, file: File): Promise<Task> {
   const form = new FormData();
   form.append('archivo', file);
-  return apiFetch<Task>(`/api/tasks/${taskId}/upload`, {
+  const task = await apiFetch<Task>(`/api/tasks/${taskId}/upload`, {
     method: 'POST',
     body: form,
   });
+  return normalizeTask(task);
 }
 
 export async function deleteArchivo(taskId: string, archivoId: string): Promise<void> {
