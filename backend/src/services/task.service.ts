@@ -3,6 +3,11 @@ import { pool } from '../db/pool.js';
 
 export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada';
 
+export type AssignCategoryResult =
+  | { ok: true; status: 'created'; tarea_id: string; categoria_id: string }
+  | { ok: true; status: 'already_assigned'; tarea_id: string; categoria_id: string }
+  | { ok: false; status: 'not_found' };
+
 const VALID_ESTADOS = new Set<TaskEstado>(['pendiente', 'en_progreso', 'completada']);
 
 export function isValidEstado(value: string): value is TaskEstado {
@@ -141,5 +146,46 @@ export const TaskService = {
       [id, usuario_id]
     );
     return rows.length > 0;
+  },
+
+  async assignCategory(
+    tarea_id: string,
+    categoria_id: string,
+    usuario_id: string
+  ): Promise<AssignCategoryResult> {
+    const taskOk = await TaskService.taskBelongsToUser(tarea_id, usuario_id);
+    if (!taskOk) {
+      return { ok: false, status: 'not_found' };
+    }
+
+    const { rows: catRows } = await pool.query(
+      `SELECT 1 FROM categorias WHERE id = $1 AND usuario_id = $2`,
+      [categoria_id, usuario_id]
+    );
+    if (catRows.length === 0) {
+      return { ok: false, status: 'not_found' };
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO tarea_categoria (tarea_id, categoria_id) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING
+       RETURNING tarea_id, categoria_id`,
+      [tarea_id, categoria_id]
+    );
+    const row = rows[0] as { tarea_id: string; categoria_id: string } | undefined;
+    if (row) {
+      return {
+        ok: true,
+        status: 'created',
+        tarea_id: row.tarea_id,
+        categoria_id: row.categoria_id,
+      };
+    }
+    return {
+      ok: true,
+      status: 'already_assigned',
+      tarea_id,
+      categoria_id,
+    };
   },
 };

@@ -8,6 +8,9 @@ import { unlink } from 'fs/promises';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { TaskService, isValidEstado } from '../services/task.service.js';
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsDir = path.join(__dirname, '../../uploads');
 
@@ -72,6 +75,39 @@ router.post('/', async (req, res) => {
       estado !== undefined && estado !== null && isValidEstado(estado) ? estado : undefined
     );
     res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.put('/:id/categories', async (req, res) => {
+  try {
+    const tareaId = routeParamId(req);
+    const { categoria_id } = req.body as { categoria_id?: string };
+    if (!tareaId) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+    if (typeof categoria_id !== 'string' || categoria_id.trim() === '') {
+      res.status(400).json({ error: 'categoria_id es requerido' });
+      return;
+    }
+    const cid = categoria_id.trim();
+    if (!UUID_REGEX.test(cid)) {
+      res.status(400).json({ error: 'categoria_id no es un UUID válido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    const result = await TaskService.assignCategory(tareaId, cid, usuario_id);
+    if (!result.ok) {
+      res.status(404).json({ error: 'Tarea o categoría no encontrada' });
+      return;
+    }
+    if (result.status === 'created') {
+      res.status(201).json({ tarea_id: result.tarea_id, categoria_id: result.categoria_id });
+      return;
+    }
+    res.status(200).json({ tarea_id: result.tarea_id, categoria_id: result.categoria_id });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
