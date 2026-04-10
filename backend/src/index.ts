@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { pool } from './db/pool.js';
 import { AuthService } from './services/auth.service.js';
 import tasksRouter from './routes/tasks.route.js';
+import categoriesRouter from './routes/categories.route.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/api/tasks', tasksRouter);
+app.use('/api/categories', categoriesRouter);
 
 app.post('/auth/register', async (req, res) => {
   try {
