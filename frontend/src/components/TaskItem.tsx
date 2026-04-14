@@ -1,6 +1,14 @@
-import { useRef, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import type { Task, TaskEstado } from '../services/api.js';
-import { updateTaskStatus, deleteTask, uploadFile, deleteArchivo } from '../services/api.js';
+import {
+  updateTaskStatus,
+  deleteTask,
+  uploadFile,
+  deleteArchivo,
+  postponeTask,
+} from '../services/api.js';
+import { DatePicker } from './DatePicker.js';
+import { getDueUrgency } from '../utils/taskDueUrgency.js';
 import './TaskItem.css';
 
 const ESTADOS: TaskEstado[] = ['pendiente', 'en_progreso', 'completada'];
@@ -26,10 +34,24 @@ function normalizeCategorias(task: Task) {
   return Array.isArray(task.categorias) ? task.categorias : [];
 }
 
+const dueBadgeLabel: Record<'yellow' | 'red', string> = {
+  yellow: 'PRÓXIMA',
+  red: 'URGENTE',
+};
+
 export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [postponeOpen, setPostponeOpen] = useState(false);
+  const [draftFecha, setDraftFecha] = useState('');
   const archivos = normalizeArchivos(task);
   const categorias = normalizeCategorias(task);
+  const dueUrgency = getDueUrgency(task.fecha_limite ?? null, task.estado);
+
+  useEffect(() => {
+    if (postponeOpen) {
+      setDraftFecha(task.fecha_limite ?? '');
+    }
+  }, [postponeOpen, task.fecha_limite]);
 
   const handleStatus = async (estado: TaskEstado) => {
     if (estado === task.estado) return;
@@ -79,6 +101,22 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
     }
   };
 
+  const handlePostponeSave = async () => {
+    const fecha_limite = draftFecha === '' ? null : draftFecha;
+    const loadingId = showToast('loading', 'GUARDANDO', 'Actualizando fecha límite...');
+    try {
+      await postponeTask(task.id, fecha_limite);
+      removeToast(loadingId);
+      showToast('success', 'FECHA ACTUALIZADA', '');
+      setPostponeOpen(false);
+      onChanged();
+    } catch (e) {
+      removeToast(loadingId);
+      const msg = e instanceof Error ? e.message : 'Error desconocido';
+      showToast('error', 'ERROR', msg);
+    }
+  };
+
   const handleDeleteArchivo = async (archivoId: string) => {
     if (!window.confirm('¿Quitar este archivo?')) return;
     const loadingId = showToast('loading', 'ELIMINANDO', 'Quitando archivo...');
@@ -99,6 +137,11 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
       <div className="task-item-main">
         <div className="task-item-header">
           <h3 className="task-item-title">{task.titulo}</h3>
+          {dueUrgency !== 'none' && (
+            <span className={`task-due-badge task-due-badge--${dueUrgency}`}>
+              {dueBadgeLabel[dueUrgency]}
+            </span>
+          )}
           <span className={`task-badge task-badge--${task.estado}`}>
             {estadoLabels[task.estado]}
           </span>
@@ -119,7 +162,15 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
         )}
         {task.descripcion && <p className="task-item-desc">{task.descripcion}</p>}
         {task.fecha_limite && (
-          <p className="task-item-meta">
+          <p
+            className={
+              dueUrgency === 'yellow'
+                ? 'task-item-meta task-item-meta--yellow'
+                : dueUrgency === 'red'
+                  ? 'task-item-meta task-item-meta--red'
+                  : 'task-item-meta'
+            }
+          >
             <span className="task-item-meta-label">Límite:</span> {task.fecha_limite}
           </p>
         )}
@@ -167,6 +218,14 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
           />
           <button
             type="button"
+            className="task-postpone-toggle"
+            onClick={() => setPostponeOpen((o) => !o)}
+            aria-expanded={postponeOpen}
+          >
+            {postponeOpen ? 'OCULTAR FECHA' : 'CAMBIAR FECHA'}
+          </button>
+          <button
+            type="button"
             className="task-attach-btn"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -176,6 +235,28 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
             ELIMINAR
           </button>
         </div>
+        {postponeOpen && (
+          <div className="task-item-postpone-panel">
+            <DatePicker
+              id={`task-postpone-${task.id}`}
+              label="Nueva fecha límite"
+              className="task-item-postpone-picker"
+              value={draftFecha}
+              onChange={(e) => setDraftFecha(e.target.value)}
+            />
+            <div className="task-item-postpone-actions">
+              <button type="button" className="task-postpone-clear" onClick={() => setDraftFecha('')}>
+                SIN LÍMITE
+              </button>
+              <button type="button" className="task-postpone-cancel" onClick={() => setPostponeOpen(false)}>
+                CANCELAR
+              </button>
+              <button type="button" className="task-postpone-save" onClick={() => void handlePostponeSave()}>
+                GUARDAR
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

@@ -4,6 +4,7 @@ import { ToastContainer } from '../components/Toast.js';
 import { TaskForm } from '../components/TaskForm.js';
 import { CategoryForm } from '../components/CategoryForm.js';
 import { CategoryFilter } from '../components/CategoryFilter.js';
+import { TaskDueDateFilter } from '../components/TaskDueDateFilter.js';
 import { TaskList } from '../components/TaskList.js';
 import './TasksPage.css';
 
@@ -16,6 +17,7 @@ export function TasksPage({ onLogout }: TasksPageProps) {
   const [listNonce, setListNonce] = useState(0);
   const [categoriesNonce, setCategoriesNonce] = useState(0);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [dueDateFilter, setDueDateFilter] = useState('');
 
   return (
     <>
@@ -47,10 +49,19 @@ export function TasksPage({ onLogout }: TasksPageProps) {
             selectedCategoryIds={selectedCategoryIds}
             onChangeSelected={setSelectedCategoryIds}
             categoriesRefreshNonce={categoriesNonce}
+            showToast={showToast}
+            removeToast={removeToast}
+            onCategoryDeleted={(id) => {
+              setSelectedCategoryIds((ids) => ids.filter((x) => x !== id));
+              setCategoriesNonce((n) => n + 1);
+              setListNonce((n) => n + 1);
+            }}
           />
+          <TaskDueDateFilter value={dueDateFilter} onChange={setDueDateFilter} />
           <TaskList
             refreshNonce={listNonce}
             selectedCategoryIds={selectedCategoryIds}
+            dueDateFilter={dueDateFilter}
             showToast={showToast}
             removeToast={removeToast}
           />

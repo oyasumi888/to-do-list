@@ -29,6 +29,16 @@
   align-items: center;
 }
 
+.category-filter-chip-group {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.category-filter-chip-group--active .category-filter-delete {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
 .category-filter-chip {
   font-family: 'Space Mono', monospace;
   font-size: 10px;
@@ -46,6 +56,24 @@
 .category-filter-chip:hover {
   border-color: #555;
   box-shadow: 0 0 0 1px rgba(232, 93, 0, 0.25);
+}
+
+.category-filter-delete {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  line-height: 1;
+  width: 28px;
+  border: 1px solid #333;
+  border-left: 0;
+  background: #0a0a0a;
+  color: #a8a8a8;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.category-filter-delete:hover {
+  border-color: #e83030;
+  color: #e83030;
 }
 
 .category-filter-chip--all {

@@ -45,7 +45,11 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const usuario_id = req.user!.id;
-    const tasks = await TaskService.getTasksByUser(usuario_id);
+    const raw = req.query['fecha_limite'];
+    const q = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw[0] : undefined;
+    const fecha =
+      typeof q === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : undefined;
+    const tasks = await TaskService.getTasksByUser(usuario_id, fecha);
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -70,6 +74,14 @@ router.post('/', async (req, res) => {
     >;
     if (typeof titulo !== 'string' || titulo.trim() === '') {
       res.status(400).json({ error: 'titulo es requerido' });
+      return;
+    }
+    if (titulo.trim().length > 200) {
+      res.status(400).json({ error: 'titulo no puede superar 200 caracteres' });
+      return;
+    }
+    if (typeof descripcion === 'string' && descripcion.length > 300) {
+      res.status(400).json({ error: 'descripcion no puede superar 300 caracteres' });
       return;
     }
     if (estado !== undefined && estado !== null && !isValidEstado(estado)) {

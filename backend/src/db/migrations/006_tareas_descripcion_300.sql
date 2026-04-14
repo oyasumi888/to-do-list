@@ -1,0 +1,2 @@
+ALTER TABLE tareas
+ALTER COLUMN descripcion TYPE VARCHAR(300);

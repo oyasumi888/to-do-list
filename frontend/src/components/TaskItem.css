@@ -64,6 +64,25 @@
   font-weight: 400;
 }
 
+.task-due-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  border: 1px solid #333;
+}
+
+.task-due-badge--yellow {
+  color: #d4b84a;
+  border-color: #8a7a30;
+}
+
+.task-due-badge--red {
+  color: #e87070;
+  border-color: #8a3030;
+}
+
 .task-badge {
   font-family: 'Space Mono', monospace;
   font-size: 9px;
@@ -108,6 +127,22 @@
   color: #e85d00;
   letter-spacing: 1px;
   margin-right: 6px;
+}
+
+.task-item-meta--yellow {
+  color: #d4b84a;
+}
+
+.task-item-meta--yellow .task-item-meta-label {
+  color: #d4b84a;
+}
+
+.task-item-meta--red {
+  color: #e87070;
+}
+
+.task-item-meta--red .task-item-meta-label {
+  color: #e87070;
 }
 
 .task-item-archivos {
@@ -198,6 +233,75 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.task-item-postpone-panel {
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid #2a2a2a;
+  margin-top: 4px;
+}
+
+.task-item-postpone-picker.date-picker-field {
+  margin-bottom: 10px;
+}
+
+.task-item-postpone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-postpone-toggle {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: 1px solid #444;
+  background: transparent;
+  color: #c9a44a;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-postpone-toggle:hover {
+  border-color: #c9a44a;
+  color: #e8d080;
+}
+
+.task-postpone-clear,
+.task-postpone-cancel,
+.task-postpone-save {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid #333;
+  background: #0a0a0a;
+  color: #a8a8a8;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-postpone-clear:hover {
+  border-color: #666;
+  color: #e8e4d9;
+}
+
+.task-postpone-cancel:hover {
+  border-color: #555;
+  color: #e8e4d9;
+}
+
+.task-postpone-save {
+  border-color: #5a4a2a;
+  color: #e85d00;
+}
+
+.task-postpone-save:hover {
+  border-color: #e85d00;
+  color: #ff9a4a;
 }
 
 .task-file-input {

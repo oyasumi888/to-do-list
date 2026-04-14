@@ -1,3 +1,5 @@
+import { dueDateToYmd } from '../utils/dueDateFormat.js';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada';
@@ -82,14 +84,19 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export async function getTasks(): Promise<Task[]> {
-  const list = await apiFetch<Task[]>('/api/tasks');
+export async function getTasks(fechaLimiteEq?: string | null): Promise<Task[]> {
+  const q =
+    fechaLimiteEq && /^\d{4}-\d{2}-\d{2}$/.test(fechaLimiteEq)
+      ? `?fecha_limite=${encodeURIComponent(fechaLimiteEq)}`
+      : '';
+  const list = await apiFetch<Task[]>(`/api/tasks${q}`);
   return list.map(normalizeTask);
 }
 
 function normalizeTask(task: Task): Task {
   return {
     ...task,
+    fecha_limite: dueDateToYmd(task.fecha_limite),
     archivos: Array.isArray(task.archivos) ? task.archivos : [],
     categorias: Array.isArray(task.categorias) ? task.categorias : [],
   };
@@ -112,6 +119,12 @@ export async function createCategory(body: CreateCategoryBody): Promise<Category
   return apiFetch<Category>('/api/categories', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await apiFetch<void>(`/api/categories/${id}`, {
+    method: 'DELETE',
   });
 }
 
@@ -145,6 +158,15 @@ export async function deleteTask(id: string): Promise<void> {
   await apiFetch<void>(`/api/tasks/${id}`, {
     method: 'DELETE',
   });
+}
+
+/** PATCH /api/tasks/:id/postpone — `fecha_limite` YYYY-MM-DD o `null` para quitar límite */
+export async function postponeTask(id: string, fecha_limite: string | null): Promise<Task> {
+  const task = await apiFetch<Task>(`/api/tasks/${id}/postpone`, {
+    method: 'PATCH',
+    body: JSON.stringify({ fecha_limite }),
+  });
+  return normalizeTask(task);
 }
 
 export async function uploadFile(taskId: string, file: File): Promise<Task> {

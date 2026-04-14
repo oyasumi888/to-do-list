@@ -34,8 +34,32 @@ app.use('/api/categories', categoriesRouter);
 
 app.post('/auth/register', async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
-    const usuario = await AuthService.register(nombre, email, password);
+    const { nombre, email, password } = req.body as {
+      nombre?: unknown;
+      email?: unknown;
+      password?: unknown;
+    };
+    if (typeof nombre !== 'string' || nombre.trim() === '') {
+      res.status(400).json({ error: 'nombre es requerido' });
+      return;
+    }
+    if (nombre.trim().length > 100) {
+      res.status(400).json({ error: 'nombre no puede superar 100 caracteres' });
+      return;
+    }
+    if (typeof email !== 'string' || email.trim() === '') {
+      res.status(400).json({ error: 'email es requerido' });
+      return;
+    }
+    if (email.trim().length > 150) {
+      res.status(400).json({ error: 'email no puede superar 150 caracteres' });
+      return;
+    }
+    if (typeof password !== 'string' || password.length < 6) {
+      res.status(400).json({ error: 'password debe tener al menos 6 caracteres' });
+      return;
+    }
+    const usuario = await AuthService.register(nombre.trim(), email.trim(), password);
     res.json(usuario);
   } catch (error) {
     res.status(400).json({ error: String(error) });
@@ -44,8 +68,16 @@ app.post('/auth/register', async (req, res) => {
 
 app.post('/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const resultado = await AuthService.login(email, password);
+    const { email, password } = req.body as { email?: unknown; password?: unknown };
+    if (typeof email !== 'string' || email.trim() === '' || email.trim().length > 150) {
+      res.status(400).json({ error: 'email inválido' });
+      return;
+    }
+    if (typeof password !== 'string' || password === '') {
+      res.status(400).json({ error: 'password requerido' });
+      return;
+    }
+    const resultado = await AuthService.login(email.trim(), password);
     res.json(resultado);
   } catch (error) {
     res.status(401).json({ error: String(error) });

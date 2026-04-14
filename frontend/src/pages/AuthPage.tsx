@@ -7,13 +7,13 @@ import { ToastContainer } from '../components/Toast.js';
 import './AuthPage.css';
 
 const loginSchema = z.object({
-  email:    z.string().email('Email inválido'),
+  email:    z.string().email('Email inválido').max(150, 'Máximo 150 caracteres'),
   password: z.string().min(1, 'Campo requerido'),
 });
 
 const registerSchema = z.object({
-  nombre:   z.string().min(1, 'Campo requerido'),
-  email:    z.string().email('Email inválido'),
+  nombre:   z.string().min(1, 'Campo requerido').max(100, 'Máximo 100 caracteres'),
+  email:    z.string().email('Email inválido').max(150, 'Máximo 150 caracteres'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
 });
 
@@ -155,6 +155,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <input
                       {...loginForm.register('email')}
                       type="email"
+                      maxLength={150}
                       placeholder="usuario@ejemplo.com"
                       className={`auth-input ${loginForm.formState.errors.email ? "error" : ""}`}
                     />
@@ -217,6 +218,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <input
                       {...registerForm.register('nombre')}
                       type="text"
+                      maxLength={100}
                       placeholder="Tu nombre"
                       className={`auth-input ${registerForm.formState.errors.nombre ? "error" : ""}`}
                     />
@@ -230,6 +232,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <input
                       {...registerForm.register('email')}
                       type="email"
+                      maxLength={150}
                       placeholder="usuario@ejemplo.com"
                       className={`auth-input ${registerForm.formState.errors.email ? "error" : ""}`}
                     />

@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createTask, getCategories } from '../services/api.js';
 import type { Category } from '../services/api.js';
+import { DatePicker } from './DatePicker.js';
 import './TaskForm.css';
 
 const taskFormSchema = z.object({
-  titulo: z.string().min(1, 'Título requerido'),
-  descripcion: z.string().optional(),
+  titulo: z.string().min(1, 'Título requerido').max(200, 'Máximo 200 caracteres'),
+  descripcion: z.string().max(300, 'Máximo 300 caracteres').optional(),
   fecha_limite: z.string().optional(),
   categoria_id: z.string().optional(),
 });
@@ -78,6 +79,7 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
           <input
             id="task-titulo"
             type="text"
+            maxLength={200}
             className={`task-form-input ${form.formState.errors.titulo ? 'error' : ''}`}
             {...form.register('titulo')}
           />
@@ -93,19 +95,20 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
           <textarea
             id="task-descripcion"
             rows={3}
+            maxLength={300}
             className="task-form-textarea"
             {...form.register('descripcion')}
           />
+          {form.formState.errors.descripcion && (
+            <div className="task-form-error">{form.formState.errors.descripcion.message}</div>
+          )}
         </div>
 
         <div className="task-form-field">
-          <label className="task-form-label" htmlFor="task-fecha">
-            Fecha límite
-          </label>
-          <input
+          <DatePicker
             id="task-fecha"
-            type="date"
-            className="task-form-input"
+            label="Fecha límite"
+            error={!!form.formState.errors.fecha_limite}
             {...form.register('fecha_limite')}
           />
         </div>

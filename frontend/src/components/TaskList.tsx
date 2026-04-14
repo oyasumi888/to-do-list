@@ -7,11 +7,19 @@ import './TaskList.css';
 interface TaskListProps {
   refreshNonce: number;
   selectedCategoryIds: string[];
+  /** `YYYY-MM-DD` o vacío: sin filtro en API */
+  dueDateFilter: string;
   showToast: (type: 'success' | 'error' | 'loading', title: string, message: string) => string;
   removeToast: (id: string) => void;
 }
 
-export function TaskList({ refreshNonce, selectedCategoryIds, showToast, removeToast }: TaskListProps) {
+export function TaskList({
+  refreshNonce,
+  selectedCategoryIds,
+  dueDateFilter,
+  showToast,
+  removeToast,
+}: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +28,7 @@ export function TaskList({ refreshNonce, selectedCategoryIds, showToast, removeT
     setLoading(true);
     setError(null);
     try {
-      const list = await getTasks();
+      const list = await getTasks(dueDateFilter || undefined);
       setTasks(list);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'No se pudieron cargar las tareas';
@@ -34,7 +42,7 @@ export function TaskList({ refreshNonce, selectedCategoryIds, showToast, removeT
   useEffect(() => {
     void loadTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when listNonce changes
-  }, [refreshNonce]);
+  }, [refreshNonce, dueDateFilter]);
 
   const visibleTasks =
     selectedCategoryIds.length === 0
@@ -74,7 +82,11 @@ export function TaskList({ refreshNonce, selectedCategoryIds, showToast, removeT
         TAREAS <span className="task-list-heading-accent">[_]</span>
       </h2>
       {tasks.length === 0 ? (
-        <p className="task-list-empty">No hay tareas. Crea una arriba.</p>
+        <p className="task-list-empty">
+          {dueDateFilter
+            ? 'Ninguna tarea con límite en esa fecha.'
+            : 'No hay tareas. Crea una arriba.'}
+        </p>
       ) : visibleTasks.length === 0 ? (
         <p className="task-list-empty">Ninguna tarea con estas categorías.</p>
       ) : (

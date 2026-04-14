@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+.task-due-filter-section {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  padding: 20px 22px;
+  margin-bottom: 24px;
+}
+
+.task-due-filter-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: #e8e4d9;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a2a2a;
+  font-weight: 400;
+}
+
+.task-due-filter-heading-accent {
+  color: #e85d00;
+}
+
+.task-due-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.task-due-filter-label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #a8a8a8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.task-due-filter-input {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  color: #e8e4d9;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  padding: 10px 12px;
+  min-height: 44px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.task-due-filter-input:focus {
+  border-color: #e85d00;
+}
+
+.task-due-filter-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+.task-due-filter-clear {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border: 1px solid #333;
+  background: transparent;
+  color: #a8a8a8;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-due-filter-clear:hover {
+  border-color: #e85d00;
+  color: #e85d00;
+}

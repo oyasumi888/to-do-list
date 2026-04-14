@@ -25,4 +25,12 @@ export const CategoryManager = {
     );
     return rows as Record<string, unknown>[];
   },
+
+  async deleteCategory(id: string, usuario_id: string): Promise<boolean> {
+    const result = await pool.query(`DELETE FROM categorias WHERE id = $1 AND usuario_id = $2`, [
+      id,
+      usuario_id,
+    ]);
+    return (result.rowCount ?? 0) > 0;
+  },
 };
