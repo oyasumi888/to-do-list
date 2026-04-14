@@ -175,6 +175,41 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+router.patch('/:id/postpone', async (req, res) => {
+  try {
+    const id = routeParamId(req);
+    if (!id) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+
+    const { fecha_limite } = req.body as { fecha_limite?: string | null };
+    let fecha: string | null;
+    if (fecha_limite === null || fecha_limite === '') {
+      fecha = null;
+    } else if (typeof fecha_limite === 'string') {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha_limite)) {
+        res.status(400).json({ error: 'fecha_limite debe ser YYYY-MM-DD o null' });
+        return;
+      }
+      fecha = fecha_limite;
+    } else {
+      res.status(400).json({ error: 'fecha_limite debe ser YYYY-MM-DD o null' });
+      return;
+    }
+
+    const usuario_id = req.user!.id;
+    const task = await TaskService.postpone(id, usuario_id, fecha);
+    if (!task) {
+      res.status(404).json({ error: 'Tarea no encontrada' });
+      return;
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 router.delete('/:id/archivos/:archivoId', async (req, res) => {
   try {
     const tareaId = routeParamId(req);

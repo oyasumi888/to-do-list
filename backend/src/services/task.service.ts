@@ -141,6 +141,17 @@ export const TaskService = {
     return TaskService.getTaskWithArchivos(id, usuario_id);
   },
 
+  async postpone(id: string, usuario_id: string, fecha_limite: string | null) {
+    const { rows } = await pool.query(
+      `UPDATE tareas SET fecha_limite = $1 WHERE id = $2 AND usuario_id = $3 RETURNING id`,
+      [fecha_limite, id, usuario_id]
+    );
+    if (rows.length === 0) {
+      return undefined;
+    }
+    return TaskService.getTaskWithArchivos(id, usuario_id);
+  },
+
   async deleteTask(id: string, usuario_id: string): Promise<boolean> {
     const result = await pool.query(
       `DELETE FROM tareas WHERE id = $1 AND usuario_id = $2`,
