@@ -52,6 +52,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/by-date', async (req, res) => {
+  try {
+    const usuario_id = req.user!.id;
+    const tasks = await TaskService.filterByDate(usuario_id);
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { titulo, descripcion, fecha_limite, estado, categoria_id } = req.body as Record<

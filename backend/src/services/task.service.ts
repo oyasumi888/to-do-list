@@ -107,6 +107,16 @@ export const TaskService = {
     return rows.map((r) => mapTaskRow(r as Record<string, unknown>));
   },
 
+  async filterByDate(usuario_id: string) {
+    const { rows } = await pool.query(
+      `${TASK_SELECT_WITH_RELATIONS}
+       WHERE t.usuario_id = $1
+       ORDER BY t.fecha_limite ASC NULLS LAST, t.creado_en DESC`,
+      [usuario_id]
+    );
+    return rows.map((r) => mapTaskRow(r as Record<string, unknown>));
+  },
+
   async getTaskWithArchivos(id: string, usuario_id: string) {
     const { rows } = await pool.query(
       `${TASK_SELECT_WITH_RELATIONS}
