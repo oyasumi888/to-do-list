@@ -64,6 +64,17 @@ npm run dev
 
 La aplicación estará disponible en `http://localhost:5173`.
 
+## Pruebas unitarias (backend)
+
+```bash
+cd backend
+npm test
+```
+
+Guía completa de pruebas y cobertura actual:
+
+- [`backend/TESTING.md`](backend/TESTING.md)
+
 ## Stack tecnológico
 
 | Capa | Tecnología |
