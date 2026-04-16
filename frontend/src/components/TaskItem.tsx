@@ -10,6 +10,7 @@ import {
   setTaskCategories,
 } from '../services/api.js';
 import { DatePicker } from './DatePicker.js';
+import { isDueDateTodayOrFuture, todayYmdLocal } from '../utils/dueDateFormat.js';
 import { getDueUrgency } from '../utils/taskDueUrgency.js';
 import './TaskItem.css';
 
@@ -19,6 +20,7 @@ const estadoLabels: Record<TaskEstado, string> = {
   pendiente: 'PENDIENTE',
   en_progreso: 'EN PROGRESO',
   completada: 'COMPLETADA',
+  expirada: 'EXPIRADA',
 };
 
 interface TaskItemProps {
@@ -26,6 +28,7 @@ interface TaskItemProps {
   showToast: (type: 'success' | 'error' | 'loading', title: string, message: string) => string;
   removeToast: (id: string) => void;
   onChanged: () => void;
+  compact?: boolean;
 }
 
 function normalizeArchivos(task: Task) {
@@ -41,7 +44,7 @@ const dueBadgeLabel: Record<'yellow' | 'red', string> = {
   red: 'URGENTE',
 };
 
-export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemProps) {
+export function TaskItem({ task, showToast, removeToast, onChanged, compact = false }: TaskItemProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [postponeOpen, setPostponeOpen] = useState(false);
   const [editCategoriesOpen, setEditCategoriesOpen] = useState(false);
@@ -51,6 +54,7 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
   const archivos = normalizeArchivos(task);
   const categorias = normalizeCategorias(task);
   const dueUrgency = getDueUrgency(task.fecha_limite ?? null, task.estado);
+  const isExpired = task.estado === 'expirada';
 
   useEffect(() => {
     if (postponeOpen) {
@@ -132,6 +136,10 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
 
   const handlePostponeSave = async () => {
     const fecha_limite = draftFecha === '' ? null : draftFecha;
+    if (fecha_limite !== null && !isDueDateTodayOrFuture(fecha_limite)) {
+      showToast('error', 'ERROR', 'La fecha límite no puede ser anterior a hoy.');
+      return;
+    }
     const loadingId = showToast('loading', 'GUARDANDO', 'Actualizando fecha límite...');
     try {
       await postponeTask(task.id, fecha_limite);
@@ -181,11 +189,11 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
   };
 
   return (
-    <article className="task-item">
+    <article className={`task-item ${isExpired ? 'task-item--expired' : ''} ${compact ? 'task-item--compact' : ''}`}>
       <div className="task-item-main">
         <div className="task-item-header">
           <h3 className="task-item-title">{task.titulo}</h3>
-          {dueUrgency !== 'none' && (
+          {dueUrgency !== 'none' && !isExpired && (
             <span className={`task-due-badge task-due-badge--${dueUrgency}`}>
               {dueBadgeLabel[dueUrgency]}
             </span>
@@ -212,7 +220,9 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
         {task.fecha_limite && (
           <p
             className={
-              dueUrgency === 'yellow'
+              isExpired
+                ? 'task-item-meta task-item-meta--red'
+                : dueUrgency === 'yellow'
                 ? 'task-item-meta task-item-meta--yellow'
                 : dueUrgency === 'red'
                   ? 'task-item-meta task-item-meta--red'
@@ -250,6 +260,7 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
               key={s}
               type="button"
               className={`task-status-btn ${task.estado === s ? 'active' : ''}`}
+              disabled={isExpired}
               onClick={() => void handleStatus(s)}
             >
               {estadoLabels[s]}
@@ -330,6 +341,7 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
               label="Nueva fecha límite"
               className="task-item-postpone-picker"
               value={draftFecha}
+              min={todayYmdLocal()}
               onChange={(e) => setDraftFecha(e.target.value)}
             />
             <div className="task-item-postpone-actions">

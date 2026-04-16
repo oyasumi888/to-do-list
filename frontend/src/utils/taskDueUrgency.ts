@@ -41,7 +41,7 @@ export type DueUrgency = 'none' | 'yellow' | 'red';
  */
 export function getDueUrgency(fecha_limite: string | null, estado: TaskEstado): DueUrgency {
   const ymd = dueDateToYmd(fecha_limite);
-  if (!ymd || estado === 'completada') {
+  if (!ymd || estado === 'completada' || estado === 'expirada') {
     return 'none';
   }
 

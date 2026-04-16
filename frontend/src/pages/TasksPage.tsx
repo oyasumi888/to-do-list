@@ -34,37 +34,43 @@ export function TasksPage({ onLogout }: TasksPageProps) {
         </header>
 
         <main className="tasks-main">
-          <TaskForm
-            showToast={showToast}
-            removeToast={removeToast}
-            onCreated={() => setListNonce((n) => n + 1)}
-            categoriesRefreshNonce={categoriesNonce}
-          />
-          <CategoryForm
-            showToast={showToast}
-            removeToast={removeToast}
-            onCategoryCreated={() => setCategoriesNonce((n) => n + 1)}
-          />
-          <CategoryFilter
-            selectedCategoryIds={selectedCategoryIds}
-            onChangeSelected={setSelectedCategoryIds}
-            categoriesRefreshNonce={categoriesNonce}
-            showToast={showToast}
-            removeToast={removeToast}
-            onCategoryDeleted={(id) => {
-              setSelectedCategoryIds((ids) => ids.filter((x) => x !== id));
-              setCategoriesNonce((n) => n + 1);
-              setListNonce((n) => n + 1);
-            }}
-          />
-          <TaskDueDateFilter value={dueDateFilter} onChange={setDueDateFilter} />
-          <TaskList
-            refreshNonce={listNonce}
-            selectedCategoryIds={selectedCategoryIds}
-            dueDateFilter={dueDateFilter}
-            showToast={showToast}
-            removeToast={removeToast}
-          />
+          <div className="tasks-layout">
+            <aside className="tasks-sidebar">
+              <TaskForm
+                showToast={showToast}
+                removeToast={removeToast}
+                onCreated={() => setListNonce((n) => n + 1)}
+                categoriesRefreshNonce={categoriesNonce}
+              />
+              <CategoryForm
+                showToast={showToast}
+                removeToast={removeToast}
+                onCategoryCreated={() => setCategoriesNonce((n) => n + 1)}
+              />
+            </aside>
+            <section className="tasks-content">
+              <CategoryFilter
+                selectedCategoryIds={selectedCategoryIds}
+                onChangeSelected={setSelectedCategoryIds}
+                categoriesRefreshNonce={categoriesNonce}
+                showToast={showToast}
+                removeToast={removeToast}
+                onCategoryDeleted={(id) => {
+                  setSelectedCategoryIds((ids) => ids.filter((x) => x !== id));
+                  setCategoriesNonce((n) => n + 1);
+                  setListNonce((n) => n + 1);
+                }}
+              />
+              <TaskDueDateFilter value={dueDateFilter} onChange={setDueDateFilter} />
+              <TaskList
+                refreshNonce={listNonce}
+                selectedCategoryIds={selectedCategoryIds}
+                dueDateFilter={dueDateFilter}
+                showToast={showToast}
+                removeToast={removeToast}
+              />
+            </section>
+          </div>
         </main>
       </div>
       <ToastContainer toasts={toasts} onRemove={removeToast} />

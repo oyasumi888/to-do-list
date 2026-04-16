@@ -9,17 +9,42 @@
   gap: 16px;
 }
 
+.task-item--expired {
+  border-color: #8a3030;
+  box-shadow: inset 0 0 0 1px rgba(232, 112, 112, 0.15);
+}
+
+.task-item--compact {
+  padding: 12px 14px;
+  gap: 10px;
+}
+
 @media (min-width: 720px) {
   .task-item {
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
   }
+
+  .task-item--compact {
+    flex-direction: row;
+  }
 }
 
 .task-item-main {
   flex: 1;
   min-width: 0;
+}
+
+.task-item--compact .task-item-desc,
+.task-item--compact .task-item-archivos,
+.task-item--compact .task-item-categorias,
+.task-item--compact .task-item-actions {
+  display: none;
+}
+
+.task-item--compact .task-item-header {
+  margin-bottom: 6px;
 }
 
 .task-item-header {
@@ -105,6 +130,11 @@
 .task-badge--completada {
   color: #7cb87c;
   border-color: #7cb87c;
+}
+
+.task-badge--expirada {
+  color: #e87070;
+  border-color: #e87070;
 }
 
 .task-item-desc {
@@ -226,6 +256,11 @@
 .task-status-btn.active {
   border-color: #e85d00;
   color: #e85d00;
+}
+
+.task-status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .task-item-row-btns {

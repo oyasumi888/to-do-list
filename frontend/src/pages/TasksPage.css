@@ -68,6 +68,29 @@
 }
 
 .tasks-main {
-  max-width: 720px;
+  max-width: 1180px;
   margin: 0 auto;
+}
+
+.tasks-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.tasks-sidebar,
+.tasks-content {
+  min-width: 0;
+}
+
+@media (min-width: 1060px) {
+  .tasks-layout {
+    grid-template-columns: minmax(340px, 36%) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .tasks-sidebar {
+    position: sticky;
+    top: 16px;
+  }
 }

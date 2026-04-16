@@ -25,6 +25,28 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+const DATE_YMD_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseLocalDateMs(ymd: string): number | null {
+  if (!DATE_YMD_REGEX.test(ymd)) return null;
+  const [yRaw, mRaw, dRaw] = ymd.split('-');
+  const y = Number(yRaw);
+  const m = Number(mRaw);
+  const d = Number(dRaw);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  dt.setHours(0, 0, 0, 0);
+  return dt.getTime();
+}
+
+function isTodayOrFuture(ymd: string): boolean {
+  const targetMs = parseLocalDateMs(ymd);
+  if (targetMs === null) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return targetMs >= today.getTime();
+}
 
 function routeParamId(req: { params: Record<string, string | string[] | undefined> }): string | undefined {
   const v = req.params['id'];
@@ -86,6 +108,10 @@ router.post('/', async (req, res) => {
     }
     if (estado !== undefined && estado !== null && (typeof estado !== 'string' || !isValidEstado(estado))) {
       res.status(400).json({ error: 'estado inválido' });
+      return;
+    }
+    if (typeof fecha_limite === 'string' && fecha_limite !== '' && !isTodayOrFuture(fecha_limite)) {
+      res.status(400).json({ error: 'fecha_limite no puede ser una fecha pasada' });
       return;
     }
     const normalizedCategoryIds = new Set<string>();
@@ -245,8 +271,12 @@ router.patch('/:id/postpone', async (req, res) => {
     if (fecha_limite === null || fecha_limite === '') {
       fecha = null;
     } else if (typeof fecha_limite === 'string') {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha_limite)) {
+      if (!DATE_YMD_REGEX.test(fecha_limite)) {
         res.status(400).json({ error: 'fecha_limite debe ser YYYY-MM-DD o null' });
+        return;
+      }
+      if (!isTodayOrFuture(fecha_limite)) {
+        res.status(400).json({ error: 'fecha_limite no puede ser una fecha pasada' });
         return;
       }
       fecha = fecha_limite;

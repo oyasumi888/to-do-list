@@ -19,6 +19,7 @@ interface CategoryFormProps {
 }
 
 const DEFAULT_COLOR = '#6366f1';
+const PRESET_COLORS = ['#6366f1', '#e85d00', '#e83030', '#7cb87c', '#d4b84a', '#2f8fdd'] as const;
 
 export function CategoryForm({ showToast, removeToast, onCategoryCreated }: CategoryFormProps) {
   const [open, setOpen] = useState(false);
@@ -93,6 +94,23 @@ export function CategoryForm({ showToast, removeToast, onCategoryCreated }: Cate
                   {...form.register('color_hex')}
                 />
                 <span className="category-form-hex-value">{form.watch('color_hex')}</span>
+              </div>
+              <div className="category-form-presets" role="group" aria-label="Colores sugeridos">
+                {PRESET_COLORS.map((color) => {
+                  const active = form.watch('color_hex').toLowerCase() === color.toLowerCase();
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`category-form-preset ${active ? 'active' : ''}`}
+                      style={{ ['--preset-color' as string]: color }}
+                      aria-label={`Seleccionar color ${color}`}
+                      onClick={() =>
+                        form.setValue('color_hex', color, { shouldDirty: true, shouldValidate: true })
+                      }
+                    />
+                  );
+                })}
               </div>
               {form.formState.errors.color_hex && (
                 <div className="category-form-error">{form.formState.errors.color_hex.message}</div>

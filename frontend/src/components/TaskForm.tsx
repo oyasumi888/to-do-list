@@ -5,12 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createTask, getCategories } from '../services/api.js';
 import type { Category } from '../services/api.js';
 import { DatePicker } from './DatePicker.js';
+import { isDueDateTodayOrFuture, todayYmdLocal } from '../utils/dueDateFormat.js';
 import './TaskForm.css';
 
 const taskFormSchema = z.object({
   titulo: z.string().min(1, 'Título requerido').max(200, 'Máximo 200 caracteres'),
   descripcion: z.string().max(300, 'Máximo 300 caracteres').optional(),
-  fecha_limite: z.string().optional(),
+  fecha_limite: z
+    .string()
+    .optional()
+    .refine((v) => !v || isDueDateTodayOrFuture(v), 'La fecha límite no puede ser anterior a hoy'),
   categoria_ids: z.array(z.string()).optional(),
 });
 
@@ -132,8 +136,12 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
             id="task-fecha"
             label="Fecha límite"
             error={!!form.formState.errors.fecha_limite}
+            min={todayYmdLocal()}
             {...form.register('fecha_limite')}
           />
+          {form.formState.errors.fecha_limite && (
+            <div className="task-form-error">{form.formState.errors.fecha_limite.message}</div>
+          )}
         </div>
 
         <div className="task-form-field">

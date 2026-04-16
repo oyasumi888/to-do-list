@@ -2,7 +2,7 @@ import { dueDateToYmd } from '../utils/dueDateFormat.js';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada';
+export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada' | 'expirada';
 
 export interface TareaArchivo {
   id: string;

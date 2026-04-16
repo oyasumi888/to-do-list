@@ -115,6 +115,32 @@
   border-color: #e85d00;
 }
 
+.category-form-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.category-form-preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #333;
+  background: var(--preset-color, #6366f1);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.category-form-preset:hover {
+  transform: translateY(-1px);
+  border-color: #e8e4d9;
+}
+
+.category-form-preset.active {
+  border-color: #e8e4d9;
+  box-shadow: 0 0 0 1px #e8e4d9;
+}
+
 .category-form-error {
   font-family: 'Space Mono', monospace;
   font-size: 10px;

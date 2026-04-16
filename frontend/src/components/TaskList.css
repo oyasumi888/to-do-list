@@ -4,6 +4,31 @@
   margin-top: 8px;
 }
 
+.task-list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.task-list-control-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  border: 1px solid #333;
+  background: #0a0a0a;
+  color: #a8a8a8;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-list-control-btn:hover,
+.task-list-control-btn.active {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
 .task-list-heading {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
@@ -26,6 +51,49 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.task-list-grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.task-list-section-block {
+  border: 1px solid #2a2a2a;
+  background: rgba(10, 10, 10, 0.45);
+}
+
+.task-list-section-block--expired {
+  border-color: #5a2a2a;
+}
+
+.task-list-section-toggle {
+  width: 100%;
+  text-align: left;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: #e8e4d9;
+  background: #111;
+  border: 0;
+  border-bottom: 1px solid #2a2a2a;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.task-list-section-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #a8a8a8;
+}
+
+.task-list-section-block .task-list {
+  padding: 12px;
 }
 
 .task-list-item {

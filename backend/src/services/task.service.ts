@@ -1,7 +1,7 @@
 import path from 'path';
 import { pool } from '../db/pool.js';
 
-export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada';
+export type TaskEstado = 'pendiente' | 'en_progreso' | 'completada' | 'expirada';
 
 export type AssignCategoryResult =
   | { ok: true; status: 'created'; tarea_id: string; categoria_id: string }
@@ -15,7 +15,18 @@ export function isValidEstado(value: string): value is TaskEstado {
 }
 
 const TASK_SELECT_WITH_RELATIONS = `
-  SELECT t.*,
+  SELECT
+    t.id,
+    t.usuario_id,
+    t.titulo,
+    t.descripcion,
+    t.fecha_limite,
+    CASE
+      WHEN t.estado <> 'completada' AND t.fecha_limite IS NOT NULL AND t.fecha_limite < CURRENT_DATE
+        THEN 'expirada'
+      ELSE t.estado
+    END AS estado,
+    t.creado_en,
     COALESCE(arch.archivos, '[]'::json) AS archivos,
     COALESCE(cat.categorias, '[]'::json) AS categorias
   FROM tareas t
