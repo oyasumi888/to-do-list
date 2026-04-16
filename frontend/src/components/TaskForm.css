@@ -61,6 +61,94 @@
   appearance: auto;
 }
 
+.task-form-help {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: #888;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+.task-form-categories-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.task-form-categories-picker-row {
+  display: flex;
+  gap: 8px;
+}
+
+.task-form-add-category-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #e8e4d9;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.task-form-add-category-btn:hover {
+  border-color: #e85d00;
+  color: #e85d00;
+}
+
+.task-form-categories-right {
+  border: 1px solid #333;
+  background: #0a0a0a;
+  min-height: 44px;
+  padding: 8px;
+}
+
+.task-form-selected-empty {
+  margin: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #777;
+}
+
+.task-form-selected-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-form-selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #2f2f2f;
+  padding: 6px 8px;
+}
+
+.task-form-selected-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #e8e4d9;
+}
+
+.task-form-selected-remove {
+  border: 1px solid #5a2a2a;
+  background: transparent;
+  color: #e87070;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.task-form-selected-remove:hover {
+  border-color: #e83030;
+  color: #e83030;
+}
+
 .task-form-input.error {
   border-color: #e83030;
 }

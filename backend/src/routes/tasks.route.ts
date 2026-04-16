@@ -68,9 +68,9 @@ router.get('/by-date', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { titulo, descripcion, fecha_limite, estado, categoria_id } = req.body as Record<
+    const { titulo, descripcion, fecha_limite, estado, categoria_id, categoria_ids } = req.body as Record<
       string,
-      string | undefined
+      string | string[] | undefined
     >;
     if (typeof titulo !== 'string' || titulo.trim() === '') {
       res.status(400).json({ error: 'titulo es requerido' });
@@ -84,18 +84,30 @@ router.post('/', async (req, res) => {
       res.status(400).json({ error: 'descripcion no puede superar 300 caracteres' });
       return;
     }
-    if (estado !== undefined && estado !== null && !isValidEstado(estado)) {
+    if (estado !== undefined && estado !== null && (typeof estado !== 'string' || !isValidEstado(estado))) {
       res.status(400).json({ error: 'estado inválido' });
       return;
     }
-    if (
-      categoria_id !== undefined &&
-      categoria_id !== null &&
-      categoria_id !== '' &&
-      !UUID_REGEX.test(categoria_id)
-    ) {
-      res.status(400).json({ error: 'categoria_id no es un UUID válido' });
-      return;
+    const normalizedCategoryIds = new Set<string>();
+    if (categoria_id !== undefined && categoria_id !== null && categoria_id !== '') {
+      if (typeof categoria_id !== 'string' || !UUID_REGEX.test(categoria_id)) {
+        res.status(400).json({ error: 'categoria_id no es un UUID válido' });
+        return;
+      }
+      normalizedCategoryIds.add(categoria_id.trim());
+    }
+    if (categoria_ids !== undefined) {
+      if (!Array.isArray(categoria_ids)) {
+        res.status(400).json({ error: 'categoria_ids debe ser un arreglo de UUIDs' });
+        return;
+      }
+      for (const rawId of categoria_ids) {
+        if (typeof rawId !== 'string' || !UUID_REGEX.test(rawId.trim())) {
+          res.status(400).json({ error: 'categoria_ids debe contener UUIDs válidos' });
+          return;
+        }
+        normalizedCategoryIds.add(rawId.trim());
+      }
     }
     const usuario_id = req.user!.id;
     let task;
@@ -105,8 +117,8 @@ router.post('/', async (req, res) => {
         titulo.trim(),
         typeof descripcion === 'string' ? descripcion : undefined,
         typeof fecha_limite === 'string' && fecha_limite !== '' ? fecha_limite : undefined,
-        estado !== undefined && estado !== null && isValidEstado(estado) ? estado : undefined,
-        typeof categoria_id === 'string' && categoria_id !== '' ? categoria_id : undefined
+        typeof estado === 'string' && isValidEstado(estado) ? estado : undefined,
+        Array.from(normalizedCategoryIds)
       );
     } catch (e) {
       if (e instanceof Error && e.message === 'Categoría no válida') {
@@ -124,9 +136,43 @@ router.post('/', async (req, res) => {
 router.put('/:id/categories', async (req, res) => {
   try {
     const tareaId = routeParamId(req);
-    const { categoria_id } = req.body as { categoria_id?: string };
+    const { categoria_id, categoria_ids } = req.body as {
+      categoria_id?: string;
+      categoria_ids?: string[];
+    };
     if (!tareaId) {
       res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+    const usuario_id = req.user!.id;
+    if (categoria_ids !== undefined) {
+      if (!Array.isArray(categoria_ids)) {
+        res.status(400).json({ error: 'categoria_ids debe ser un arreglo de UUIDs' });
+        return;
+      }
+      const uniqueIds = new Set<string>();
+      for (const rawId of categoria_ids) {
+        if (typeof rawId !== 'string' || !UUID_REGEX.test(rawId.trim())) {
+          res.status(400).json({ error: 'categoria_ids debe contener UUIDs válidos' });
+          return;
+        }
+        uniqueIds.add(rawId.trim());
+      }
+      let task;
+      try {
+        task = await TaskService.setCategories(tareaId, Array.from(uniqueIds), usuario_id);
+      } catch (e) {
+        if (e instanceof Error && e.message === 'Categoría no válida') {
+          res.status(400).json({ error: e.message });
+          return;
+        }
+        throw e;
+      }
+      if (!task) {
+        res.status(404).json({ error: 'Tarea o categoría no encontrada' });
+        return;
+      }
+      res.json(task);
       return;
     }
     if (typeof categoria_id !== 'string' || categoria_id.trim() === '') {
@@ -138,7 +184,6 @@ router.put('/:id/categories', async (req, res) => {
       res.status(400).json({ error: 'categoria_id no es un UUID válido' });
       return;
     }
-    const usuario_id = req.user!.id;
     const result = await TaskService.assignCategory(tareaId, cid, usuario_id);
     if (!result.ok) {
       res.status(404).json({ error: 'Tarea o categoría no encontrada' });

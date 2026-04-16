@@ -37,6 +37,8 @@ export interface CreateTaskBody {
   fecha_limite?: string;
   /** Categoría de la tarea (vincula en tarea_categoria); debe pertenecer al usuario */
   categoria_id?: string;
+  /** Compatibilidad nueva: asignación múltiple */
+  categoria_ids?: string[];
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -129,19 +131,32 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 export async function createTask(body: CreateTaskBody): Promise<Task> {
-  const payload: Record<string, string> = { titulo: body.titulo };
+  const payload: Record<string, string | string[]> = { titulo: body.titulo };
   if (body.descripcion !== undefined && body.descripcion !== '') {
     payload.descripcion = body.descripcion;
   }
   if (body.fecha_limite !== undefined && body.fecha_limite !== '') {
     payload.fecha_limite = body.fecha_limite;
   }
-  if (body.categoria_id !== undefined && body.categoria_id !== '') {
+  const categoriaIds = Array.from(new Set((body.categoria_ids ?? []).filter((id) => id !== '')));
+  if (categoriaIds.length > 0) {
+    payload.categoria_ids = categoriaIds;
+  } else if (body.categoria_id !== undefined && body.categoria_id !== '') {
     payload.categoria_id = body.categoria_id;
   }
   const task = await apiFetch<Task>('/api/tasks', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+  return normalizeTask(task);
+}
+
+/** Reemplaza el conjunto completo de categorías de una tarea. */
+export async function setTaskCategories(id: string, categoria_ids: string[]): Promise<Task> {
+  const ids = Array.from(new Set(categoria_ids.filter((c) => c !== '')));
+  const task = await apiFetch<Task>(`/api/tasks/${id}/categories`, {
+    method: 'PUT',
+    body: JSON.stringify({ categoria_ids: ids }),
   });
   return normalizeTask(task);
 }

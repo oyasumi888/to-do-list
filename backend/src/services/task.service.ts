@@ -61,14 +61,15 @@ export const TaskService = {
     descripcion?: string,
     fecha_limite?: string | null,
     estado?: TaskEstado,
-    categoria_id?: string
+    categoria_ids?: string[]
   ) {
-    if (categoria_id !== undefined && categoria_id !== '') {
+    const categoryIds = Array.from(new Set((categoria_ids ?? []).filter((id) => id !== '')));
+    if (categoryIds.length > 0) {
       const { rows: catRows } = await pool.query(
-        `SELECT 1 FROM categorias WHERE id = $1 AND usuario_id = $2`,
-        [categoria_id, usuario_id]
+        `SELECT id FROM categorias WHERE usuario_id = $1 AND id = ANY($2::uuid[])`,
+        [usuario_id, categoryIds]
       );
-      if (catRows.length === 0) {
+      if (catRows.length !== categoryIds.length) {
         throw new Error('Categoría no válida');
       }
     }
@@ -82,11 +83,12 @@ export const TaskService = {
     );
     const taskId = String(rows[0]['id']);
 
-    if (categoria_id !== undefined && categoria_id !== '') {
+    if (categoryIds.length > 0) {
       await pool.query(
-        `INSERT INTO tarea_categoria (tarea_id, categoria_id) VALUES ($1, $2)
+        `INSERT INTO tarea_categoria (tarea_id, categoria_id)
+         SELECT $1, cid FROM UNNEST($2::uuid[]) AS cid
          ON CONFLICT DO NOTHING`,
-        [taskId, categoria_id]
+        [taskId, categoryIds]
       );
     }
 
@@ -250,5 +252,46 @@ export const TaskService = {
       tarea_id,
       categoria_id,
     };
+  },
+
+  async setCategories(
+    tarea_id: string,
+    categoria_ids: string[],
+    usuario_id: string
+  ): Promise<Record<string, unknown> | undefined> {
+    const taskOk = await TaskService.taskBelongsToUser(tarea_id, usuario_id);
+    if (!taskOk) {
+      return undefined;
+    }
+
+    const categoryIds = Array.from(new Set(categoria_ids.filter((id) => id !== '')));
+    if (categoryIds.length > 0) {
+      const { rows: catRows } = await pool.query(
+        `SELECT id FROM categorias WHERE usuario_id = $1 AND id = ANY($2::uuid[])`,
+        [usuario_id, categoryIds]
+      );
+      if (catRows.length !== categoryIds.length) {
+        throw new Error('Categoría no válida');
+      }
+    }
+
+    await pool.query('BEGIN');
+    try {
+      await pool.query(`DELETE FROM tarea_categoria WHERE tarea_id = $1`, [tarea_id]);
+      if (categoryIds.length > 0) {
+        await pool.query(
+          `INSERT INTO tarea_categoria (tarea_id, categoria_id)
+           SELECT $1, cid FROM UNNEST($2::uuid[]) AS cid
+           ON CONFLICT DO NOTHING`,
+          [tarea_id, categoryIds]
+        );
+      }
+      await pool.query('COMMIT');
+    } catch (e) {
+      await pool.query('ROLLBACK');
+      throw e;
+    }
+
+    return TaskService.getTaskWithArchivos(tarea_id, usuario_id);
   },
 };

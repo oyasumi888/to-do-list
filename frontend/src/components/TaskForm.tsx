@@ -11,7 +11,7 @@ const taskFormSchema = z.object({
   titulo: z.string().min(1, 'Título requerido').max(200, 'Máximo 200 caracteres'),
   descripcion: z.string().max(300, 'Máximo 300 caracteres').optional(),
   fecha_limite: z.string().optional(),
-  categoria_id: z.string().optional(),
+  categoria_ids: z.array(z.string()).optional(),
 });
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -25,6 +25,7 @@ interface TaskFormProps {
 
 export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshNonce }: TaskFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryToAdd, setCategoryToAdd] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +43,7 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
       titulo: '',
       descripcion: '',
       fecha_limite: '',
-      categoria_id: '',
+      categoria_ids: [],
     },
   });
 
@@ -53,11 +54,11 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
         titulo: data.titulo.trim(),
         descripcion: data.descripcion?.trim() || undefined,
         fecha_limite: data.fecha_limite?.trim() || undefined,
-        categoria_id: data.categoria_id?.trim() || undefined,
+        categoria_ids: Array.from(new Set((data.categoria_ids ?? []).filter((id) => id !== ''))),
       });
       removeToast(loadingId);
       showToast('success', 'TAREA CREADA', 'La tarea se guardó correctamente.');
-      form.reset({ titulo: '', descripcion: '', fecha_limite: '', categoria_id: '' });
+      form.reset({ titulo: '', descripcion: '', fecha_limite: '', categoria_ids: [] });
       onCreated();
     } catch (e) {
       removeToast(loadingId);
@@ -65,6 +66,28 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
       showToast('error', 'ERROR', msg);
     }
   };
+
+  const selectedCategoryIds = form.watch('categoria_ids') ?? [];
+
+  const addCategory = () => {
+    if (!categoryToAdd) return;
+    if (selectedCategoryIds.includes(categoryToAdd)) {
+      setCategoryToAdd('');
+      return;
+    }
+    form.setValue('categoria_ids', [...selectedCategoryIds, categoryToAdd], { shouldDirty: true });
+    setCategoryToAdd('');
+  };
+
+  const removeCategory = (categoryId: string) => {
+    form.setValue(
+      'categoria_ids',
+      selectedCategoryIds.filter((id) => id !== categoryId),
+      { shouldDirty: true }
+    );
+  };
+
+  const selectedCategories = categories.filter((c) => selectedCategoryIds.includes(c.id));
 
   return (
     <section className="task-form-section">
@@ -115,20 +138,53 @@ export function TaskForm({ showToast, removeToast, onCreated, categoriesRefreshN
 
         <div className="task-form-field">
           <label className="task-form-label" htmlFor="task-categoria">
-            Categoría de la tarea
+            Categorías de la tarea
           </label>
-          <select
-            id="task-categoria"
-            className="task-form-input task-form-select"
-            {...form.register('categoria_id')}
-          >
-            <option value="">Sin categoría</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
+          <div className="task-form-categories-layout">
+            <div className="task-form-categories-left">
+              <div className="task-form-categories-picker-row">
+                <select
+                  id="task-categoria"
+                  className="task-form-input task-form-select"
+                  value={categoryToAdd}
+                  onChange={(e) => setCategoryToAdd(e.target.value)}
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="task-form-add-category-btn" onClick={addCategory}>
+                  AGREGAR
+                </button>
+              </div>
+            </div>
+
+            <div className="task-form-categories-right">
+              {selectedCategories.length === 0 ? (
+                <p className="task-form-selected-empty">Sin categorías seleccionadas</p>
+              ) : (
+                <ul className="task-form-selected-list">
+                  {selectedCategories.map((c) => (
+                    <li key={c.id} className="task-form-selected-item">
+                      <span className="task-form-selected-name">{c.nombre}</span>
+                      <button
+                        type="button"
+                        className="task-form-selected-remove"
+                        onClick={() => removeCategory(c.id)}
+                        aria-label={`Quitar categoría ${c.nombre}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+          <div className="task-form-help">Selecciona en la lista y agrégala. Puedes quitar categorías desde la lista derecha.</div>
         </div>
 
         <button type="submit" className="task-form-submit">

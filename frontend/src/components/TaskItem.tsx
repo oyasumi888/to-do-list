@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
-import type { Task, TaskEstado } from '../services/api.js';
+import type { Category, Task, TaskEstado } from '../services/api.js';
 import {
   updateTaskStatus,
   deleteTask,
   uploadFile,
   deleteArchivo,
   postponeTask,
+  getCategories,
+  setTaskCategories,
 } from '../services/api.js';
 import { DatePicker } from './DatePicker.js';
 import { getDueUrgency } from '../utils/taskDueUrgency.js';
@@ -42,7 +44,10 @@ const dueBadgeLabel: Record<'yellow' | 'red', string> = {
 export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [postponeOpen, setPostponeOpen] = useState(false);
+  const [editCategoriesOpen, setEditCategoriesOpen] = useState(false);
   const [draftFecha, setDraftFecha] = useState('');
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
+  const [draftCategoryIds, setDraftCategoryIds] = useState<string[]>([]);
   const archivos = normalizeArchivos(task);
   const categorias = normalizeCategorias(task);
   const dueUrgency = getDueUrgency(task.fecha_limite ?? null, task.estado);
@@ -52,6 +57,30 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
       setDraftFecha(task.fecha_limite ?? '');
     }
   }, [postponeOpen, task.fecha_limite]);
+
+  useEffect(() => {
+    if (!editCategoriesOpen) return;
+    let cancelled = false;
+    void getCategories()
+      .then((list) => {
+        if (!cancelled) {
+          setCategoryOptions(list);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCategoryOptions([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editCategoriesOpen]);
+
+  useEffect(() => {
+    if (!editCategoriesOpen) return;
+    setDraftCategoryIds((task.categorias ?? []).map((c) => c.id));
+  }, [editCategoriesOpen, task.categorias]);
 
   const handleStatus = async (estado: TaskEstado) => {
     if (estado === task.estado) return;
@@ -124,6 +153,25 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
       await deleteArchivo(task.id, archivoId);
       removeToast(loadingId);
       showToast('success', 'ARCHIVO ELIMINADO', '');
+      onChanged();
+    } catch (e) {
+      removeToast(loadingId);
+      const msg = e instanceof Error ? e.message : 'Error desconocido';
+      showToast('error', 'ERROR', msg);
+    }
+  };
+
+  const toggleDraftCategory = (id: string) => {
+    setDraftCategoryIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleSaveCategories = async () => {
+    const loadingId = showToast('loading', 'GUARDANDO', 'Actualizando categorías...');
+    try {
+      await setTaskCategories(task.id, draftCategoryIds);
+      removeToast(loadingId);
+      showToast('success', 'CATEGORÍAS ACTUALIZADAS', '');
+      setEditCategoriesOpen(false);
       onChanged();
     } catch (e) {
       removeToast(loadingId);
@@ -231,10 +279,50 @@ export function TaskItem({ task, showToast, removeToast, onChanged }: TaskItemPr
           >
             ADJUNTAR
           </button>
+          <button
+            type="button"
+            className="task-edit-categories-toggle"
+            onClick={() => setEditCategoriesOpen((o) => !o)}
+            aria-expanded={editCategoriesOpen}
+          >
+            {editCategoriesOpen ? 'OCULTAR CATEGORÍAS' : 'EDITAR CATEGORÍAS'}
+          </button>
           <button type="button" className="task-delete-btn" onClick={() => void handleDelete()}>
             ELIMINAR
           </button>
         </div>
+        {editCategoriesOpen && (
+          <div className="task-item-categories-panel">
+            <p className="task-item-categories-title">Selecciona categorías</p>
+            <div className="task-item-categories-grid">
+              {categoryOptions.map((cat) => {
+                const active = draftCategoryIds.includes(cat.id);
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`task-item-category-choice ${active ? 'active' : ''}`}
+                    onClick={() => toggleDraftCategory(cat.id)}
+                    style={{ ['--category-accent' as string]: cat.color_hex }}
+                  >
+                    {cat.nombre}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="task-item-categories-actions">
+              <button type="button" className="task-postpone-clear" onClick={() => setDraftCategoryIds([])}>
+                SIN CATEGORÍAS
+              </button>
+              <button type="button" className="task-postpone-cancel" onClick={() => setEditCategoriesOpen(false)}>
+                CANCELAR
+              </button>
+              <button type="button" className="task-postpone-save" onClick={() => void handleSaveCategories()}>
+                GUARDAR
+              </button>
+            </div>
+          </div>
+        )}
         {postponeOpen && (
           <div className="task-item-postpone-panel">
             <DatePicker
