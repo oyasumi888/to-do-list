@@ -71,6 +71,8 @@ cd backend
 npm test
 ```
 
+Cada vez que se ejecutan las pruebas se genera automáticamente un reporte en `backend/test-results/test-log.json` con el resultado de cada prueba, mensajes de error y tiempos de ejecución.
+
 Guía completa de pruebas y cobertura actual:
 
 - [`backend/TESTING.md`](backend/TESTING.md)
@@ -82,4 +84,5 @@ Guía completa de pruebas y cobertura actual:
 | Frontend | React + Vite + TypeScript |
 | Backend | Node.js + Express + TypeScript |
 | Base de datos | PostgreSQL |
+| Pruebas | Vitest |
 | Control de versiones | GitHub |

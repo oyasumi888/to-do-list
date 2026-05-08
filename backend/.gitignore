@@ -4,3 +4,4 @@
 node_modules/
 dist/
 .ts-node/
+test-results/
