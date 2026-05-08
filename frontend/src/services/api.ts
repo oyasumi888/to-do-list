@@ -1,6 +1,6 @@
 import { dueDateToYmd } from '../utils/dueDateFormat.js';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 // #region agent log
 console.log('[debug-cd3ac2] API_BASE =', API_BASE, '| VITE_API_URL =', import.meta.env.VITE_API_URL);
 // #endregion

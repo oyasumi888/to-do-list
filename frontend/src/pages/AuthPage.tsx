@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../services/api.js';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,7 +63,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     try {
       let res;
       try {
-        res = await fetch('http://localhost:3000/auth/login', {
+        res = await fetch(`${API_BASE}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -100,7 +101,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     try {
       let res;
       try {
-        res = await fetch('http://localhost:3000/auth/register', {
+        res = await fetch(`${API_BASE}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
