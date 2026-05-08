@@ -8,11 +8,12 @@ const { Pool } = pg;
 const isProduction = process.env.NODE_ENV === 'production';
 
 // #region agent log
+const dbUrlSnippet = process.env.DATABASE_URL
+  ? process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':***@').slice(0, 80)
+  : '(not set)';
 console.log('[debug-cd3ac2] pool config:', {
-  usingDatabaseUrl: !!process.env.DATABASE_URL,
+  DATABASE_URL_preview: dbUrlSnippet,
   DB_HOST: process.env.DB_HOST ?? '(not set)',
-  DB_PORT: process.env.DB_PORT ?? '(not set)',
-  DB_NAME: process.env.DB_NAME ?? '(not set)',
   NODE_ENV: process.env.NODE_ENV ?? '(not set)',
 });
 // #endregion
