@@ -10,10 +10,6 @@ import categoriesRouter from './routes/categories.route.js';
 
 dotenv.config();
 
-// #region agent log
-fetch('http://127.0.0.1:7615/ingest/a86b710b-9360-41e3-aa3f-55206aec8239',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cd3ac2'},body:JSON.stringify({sessionId:'cd3ac2',location:'src/index.ts:12',message:'Server entry reached',data:{node:process.version,port:process.env.PORT,env:process.env.NODE_ENV},timestamp:Date.now(),hypothesisId:'A-D'})}).catch(()=>{});
-// #endregion
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
